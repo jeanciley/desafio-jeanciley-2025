@@ -2,26 +2,33 @@ import { AbrigoAnimais } from "./abrigo-animais.js";
 
 const abrigo = new AbrigoAnimais();
 
-// ✅ Teste válido
+// Pessoa 1 consegue atender vários animais seguidos
+console.log("Teste limite pessoa 1:");
 console.log(
-  abrigo.encontraPessoas("RATO,BOLA,LASER", "CAIXA,NOVELO", "Rex, Mimi, Bola")
+  abrigo.encontraPessoas(
+    "RATO,BOLA,LASER,CAIXA,NOVELO,SKATE", // Pessoa 1 tem tudo
+    "RATO",                               // Pessoa 2 quase nada
+    "Rex,Mimi,Fofo,Bola"                  // 4 animais na ordem
+  )
 );
-// Esperado: { erro: null, lista: [ 'Rex', 'Mimi', 'Bola' ] }
+// Esperado:
+// Rex  -> pessoa 1
+// Mimi -> pessoa 1
+// Fofo -> pessoa 1
+// Bola -> abrigo  (porque pessoa 1 já tem 3)
 
-// ❌ Teste com animal inválido
-console.log(
-  abrigo.encontraPessoas("RATO,BOLA", "CAIXA,NOVELO", "Rex, Pikachu")
-);
-// Esperado: { erro: "Animal inválido", lista: null }
 
-// ❌ Teste com brinquedo inválido
+// Agora o mesmo para a pessoa 2
+console.log("\nTeste limite pessoa 2:");
 console.log(
-  abrigo.encontraPessoas("RATO,FOGUETE", "CAIXA,NOVELO", "Rex, Mimi")
+  abrigo.encontraPessoas(
+    "RATO",                               // Pessoa 1 quase nada
+    "RATO,BOLA,LASER,CAIXA,NOVELO,SKATE", // Pessoa 2 tem tudo
+    "Rex,Mimi,Fofo,Bola"                  // 4 animais na ordem
+  )
 );
-// Esperado: { erro: "Brinquedo inválido", lista: null }
-
-// ❌ Teste com brinquedo repetido
-console.log(
-  abrigo.encontraPessoas("RATO,RATO", "CAIXA,NOVELO", "Rex, Mimi")
-);
-// Esperado: { erro: "Brinquedo inválido", lista: null }
+// Esperado:
+// Rex  -> pessoa 2
+// Mimi -> pessoa 2
+// Fofo -> pessoa 2
+// Bola -> abrigo  (porque pessoa 2 já tem 3)
