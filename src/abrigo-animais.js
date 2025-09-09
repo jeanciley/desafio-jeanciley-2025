@@ -2,13 +2,13 @@ class AbrigoAnimais {
 
   constructor() {
     this.animais = {
-      Rex: ["RATO", "BOLA"],
-      Mimi: ["BOLA", "LASER"],
-      Fofo: ["BOLA", "RATO", "LASER"],
-      Zero: ["RATO", "BOLA"],
-      Bola: ["CAIXA", "NOVELO"],
-      Bebe: ["LASER", "RATO", "BOLA"],
-      Loco: ["SKATE", "RATO"],
+      Rex: { especie: "cão", favoritos: ["RATO", "BOLA"] },
+      Mimi: { especie: "gato", favoritos: ["BOLA", "LASER"] },
+      Fofo: { especie: "gato", favoritos: ["BOLA", "RATO", "LASER"] },
+      Zero: { especie: "gato", favoritos: ["RATO", "BOLA"] },
+      Bola: { especie: "cão", favoritos: ["CAIXA", "NOVELO"] },
+      Bebe: { especie: "cão", favoritos: ["LASER", "RATO", "BOLA"] },
+      Loco: { especie: "jabuti", favoritos: ["SKATE", "RATO"] },
     };
 
     this.listaBrinquedos = [
@@ -19,55 +19,93 @@ class AbrigoAnimais {
       "NOVELO",
       "SKATE"
     ];
-
   }
 
-// 🔹 Função auxiliar: verifica se a pessoa consegue atender a ordem de brinquedos do animal
-  consegueAtender(listaPessoa, ordemAnimal) {
-    let indiceAnimal = 0; // posição atual na ordem do animal
-    for (let brinquedo of listaPessoa) {
-      if (brinquedo === ordemAnimal[indiceAnimal]) {
-        indiceAnimal++; // achou o brinquedo esperado, avança
-      }
-      if (indiceAnimal === ordemAnimal.length) {
-        return true; // já encontrou todos os brinquedos na ordem
-      }
+  // 🔹 Funções auxiliares 🔹
+  mostraTodosNaOrdem(seqPessoa, favoritos) {
+    let i = 0;
+    for (let brinquedo of seqPessoa) {
+      if (i < favoritos.length && brinquedo === favoritos[i]) i++;
     }
-    return false; // terminou sem conseguir a ordem completa
+    return i === favoritos.length;
   }
 
-  // Nova função: atribui cada animal a quem consegue atender (Pessoa 1, Pessoa 2 ou Nenhuma)
+  mostraTodosIgnorandoOrdem(seqPessoa, favoritos) {
+    const cont = new Map();
+    for (let b of seqPessoa) cont.set(b, (cont.get(b) || 0) + 1);
+    for (let fav of favoritos) {
+      const q = cont.get(fav) || 0;
+      if (q <= 0) return false;
+      cont.set(fav, q - 1);
+    }
+    return true;
+  }
+
+  podeAdotar(animalNome, listaPessoa) {
+    const animal = this.animais[animalNome];
+    if (!animal) return false;
+
+    // Loco (jabuti) ignora ordem
+    if (animal.especie === "jabuti") {
+      return this.mostraTodosIgnorandoOrdem(listaPessoa, animal.favoritos);
+    }
+    return this.mostraTodosNaOrdem(listaPessoa, animal.favoritos);
+  }
+
+  // 🔹 Função que atribui cada animal a quem consegue atender 🔹
   atribuirAnimais(ordemAnimaisArray, listaPessoa1, listaPessoa2) {
-    const atribuicoes = {}; // vai mapear animal -> "Pessoa 1" | "Pessoa 2" | "Nenhuma"
-    let adotadosPessoa1 = 0;
-    let adotadosPessoa2 = 0;
+  const atribuicoes = {};
+  const adotadosPessoa1 = [];
+  const adotadosPessoa2 = [];
 
-    for (let animal of ordemAnimaisArray) {
-      const favoritos = this.animais[animal]; // brinquedos favoritos, em ordem
+  // Primeiro processa todos os animais que não são Loco
+  for (let animal of ordemAnimaisArray) {
+    if (animal === "Loco") continue;
 
-      // reaproveita a função auxiliar já existente
-      const pessoa1Consegue = this.consegueAtender(listaPessoa1, favoritos);
-      const pessoa2Consegue = this.consegueAtender(listaPessoa2, favoritos);
+    const pessoa1Consegue = this.podeAdotar(animal, listaPessoa1);
+    const pessoa2Consegue = this.podeAdotar(animal, listaPessoa2);
 
-      if (pessoa1Consegue && !pessoa2Consegue) {
-        atribuicoes[animal] = "Pessoa 1";
-      } else if (!pessoa1Consegue && pessoa2Consegue) {
-        atribuicoes[animal] = "Pessoa 2";
-      } else {
-        // aqui entram dois casos: nenhum consegue OU ambos conseguem.
-        // por enquanto tratamos ambos como "Nenhuma" (vai pro abrigo / empate).
-        atribuicoes[animal] = "Nenhuma";
-      }
+    let dono = "Abrigo";
+
+    if (pessoa1Consegue && !pessoa2Consegue) dono = "Pessoa 1";
+    else if (!pessoa1Consegue && pessoa2Consegue) dono = "Pessoa 2";
+
+    // Empates ou ninguém consegue -> Abrigo (Regra 4 já implícita)
+
+    // Regra 5: limite de 3 animais por pessoa
+    if (dono === "Pessoa 1" && adotadosPessoa1.length >= 3) dono = "Abrigo";
+    if (dono === "Pessoa 2" && adotadosPessoa2.length >= 3) dono = "Abrigo";
+
+    atribuicoes[animal] = dono;
+
+    if (dono === "Pessoa 1") adotadosPessoa1.push(animal);
+    if (dono === "Pessoa 2") adotadosPessoa2.push(animal);
+  }
+
+  // Agora processa Loco (Regra 6)
+  if (ordemAnimaisArray.includes("Loco")) {
+    const pessoa1Consegue = this.podeAdotar("Loco", listaPessoa1);
+    const pessoa2Consegue = this.podeAdotar("Loco", listaPessoa2);
+
+    let dono = "Abrigo";
+
+    if (pessoa1Consegue && adotadosPessoa1.length >= 1 && adotadosPessoa1.length < 3) {
+      dono = "Pessoa 1";
+      adotadosPessoa1.push("Loco");
+    } else if (pessoa2Consegue && adotadosPessoa2.length >= 1 && adotadosPessoa2.length < 3) {
+      dono = "Pessoa 2";
+      adotadosPessoa2.push("Loco");
     }
 
+    atribuicoes["Loco"] = dono;
+  }
     return atribuicoes;
   }
 
+  // 🔹 Função principal 🔹
   encontraPessoas(brinquedosPessoa1, brinquedosPessoa2, ordemAnimais) {
-    // Transformar string em array
     const listaAnimais = ordemAnimais.split(",").map(a => a.trim());
 
-    // Validar animais e duplicatas
     const animaisSet = new Set();
     for (let animal of listaAnimais) {
       if (!this.animais[animal] || animaisSet.has(animal)) {
@@ -76,7 +114,6 @@ class AbrigoAnimais {
       animaisSet.add(animal);
     }
 
-    // Transformar e validar brinquedos
     const listaPessoa1 = brinquedosPessoa1.split(",").map(b => b.trim());
     const listaPessoa2 = brinquedosPessoa2.split(",").map(b => b.trim());
 
@@ -95,10 +132,8 @@ class AbrigoAnimais {
       return { erro: "Brinquedo inválido", lista: null };
     }
 
-    // ---- usa a nova função para obter quem pode levar cada animal ----
     const atribuicoes = this.atribuirAnimais(listaAnimais, listaPessoa1, listaPessoa2);
 
-    // converte o mapa de atribuições para o formato requerido: "Nome - pessoa X" ou "Nome - abrigo"
     const resultado = listaAnimais.map(animal => {
       const dono = atribuicoes[animal];
       if (dono === "Pessoa 1") return `${animal} - pessoa 1`;

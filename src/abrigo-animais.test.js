@@ -10,7 +10,7 @@ describe('Abrigo de Animais', () => {
 
   test('Deve encontrar pessoa para um animal', () => {
     const resultado = new AbrigoAnimais().encontraPessoas(
-      'RATO,BOLA', 'RATO,NOVELO', 'Rex,Fofo');
+      'RATO,BOLA', 'RATO,NOVELO', 'Fofo,Rex');
       expect(resultado.lista[0]).toBe('Fofo - abrigo');
       expect(resultado.lista[1]).toBe('Rex - pessoa 1');
       expect(resultado.lista.length).toBe(2);
@@ -19,7 +19,7 @@ describe('Abrigo de Animais', () => {
 
   test('Deve encontrar pessoa para um animal intercalando brinquedos', () => {
     const resultado = new AbrigoAnimais().encontraPessoas('BOLA,LASER',
-      'BOLA,NOVELO,RATO,LASER', 'Mimi,Fofo,Rex,Bola');
+      'BOLA,NOVELO,RATO,LASER', 'Bola,Fofo,Mimi,Rex');
 
       expect(resultado.lista[0]).toBe('Bola - abrigo');
       expect(resultado.lista[1]).toBe('Fofo - pessoa 2');
